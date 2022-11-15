@@ -67,21 +67,12 @@ protected:
 #if 0
         PAINTSTRUCT ps;
         BeginPaint(*this, &ps);
+        OnDraw(&ps);
+        EndPaint(*this, &ps);
 #else
         PAINTSTRUCTDB ps;
         BeginPaintDB(*this, &ps);
-#endif
-
-#if 0
-        RECT rcClip;
-        int cb = GetClipBox(ps.hdc, &rcClip);
-#endif
-
         OnDraw(&ps);
-
-#if 0
-        EndPaint(*this, &ps);
-#else
         EndPaintDB(*this, &ps);
 #endif
     }
