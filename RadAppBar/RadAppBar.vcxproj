@@ -77,6 +77,9 @@
     <ProjectReference Include="..\FgWindow\FgWindow.vcxproj">
       <Project>{7e5ee5c1-86fa-4090-a7b3-9e54b7c107bc}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\Perf\Perf.vcxproj">
+      <Project>{ec29850c-ca11-4202-804b-b42625c357f9}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\RABLib\RABLib.vcxproj">
       <Project>{04ff5dee-7494-4b34-a600-f1bdc96cd79d}</Project>
     </ProjectReference>

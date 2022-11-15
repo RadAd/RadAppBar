@@ -21,7 +21,7 @@ struct SourceLocation
     const TCHAR* funcsig;
 };
 
-#define SRC_LOC SourceLocation(__LINE__, _T(__FILE__), _T(__FUNCTION__), _T(__FUNCSIG__))
+#define SRC_LOC SourceLocation(__LINE__, TEXT(__FILE__), TEXT(__FUNCTION__), TEXT(__FUNCSIG__))
 
 #undef ERROR
 enum class LogLevel

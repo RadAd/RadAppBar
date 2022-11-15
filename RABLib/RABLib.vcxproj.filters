@@ -13,6 +13,7 @@
     <ClInclude Include="markable.h" />
     <ClInclude Include="gdi_utils.h" />
     <ClInclude Include="Logging.h" />
+    <ClInclude Include="Format.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Window.cpp" />

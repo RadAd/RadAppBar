@@ -181,16 +181,18 @@ void RootWindow::OnCreate(const LPCREATESTRUCT lpCreateStruct, LRESULT* pResult)
             {
                 const WidgetParams wp = { strWidget, m_uEdge, &m_Default, -hKeyThisWidget };
 
-                TCHAR strModule[MAX_PATH];
+                TCHAR strModule[MAX_PATH] = TEXT("");
                 CHECK(LogLevel::ERROR, RegGetString(-hKeyThisWidget, _T("Module"), strModule, ARRAYSIZE(strModule)) == ERROR_SUCCESS);
 
-                char strEntry[100];
+                char strEntry[100] = "";
                 CHECK(LogLevel::ERROR, RegGetStringA(-hKeyThisWidget, "Entry", strEntry, ARRAYSIZE(strEntry)) == ERROR_SUCCESS);
 
                 HMODULE hDLL = LoadLibrary(strModule);  // TODO Unload dll
+                CHECK(LogLevel::ERROR, hDLL != NULL, strModule);
                 if (hDLL != NULL)
                 {
                     CreateWidgetFn* CreateWidget = reinterpret_cast<CreateWidgetFn*>(GetProcAddress(hDLL, strEntry));
+                    CHECK(LogLevel::ERROR, CreateWidget != NULL);
                     if (CreateWidget != nullptr)
                     {
                         m_Widgets[i].push_back(CreateWidget(*this, &wp));
