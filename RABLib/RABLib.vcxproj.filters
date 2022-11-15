@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClInclude Include="Window.h" />
+    <ClInclude Include="Windowxx.h" />
+    <ClInclude Include="WidgetWindow.h" />
+    <ClInclude Include="..\API\RadAppBar.h">
+      <Filter>API</Filter>
+    </ClInclude>
+    <ClInclude Include="TextWidgetWindow.h" />
+    <ClInclude Include="reg_utils.h" />
+    <ClInclude Include="memory_utils.h" />
+    <ClInclude Include="markable.h" />
+    <ClInclude Include="gdi_utils.h" />
+    <ClInclude Include="Logging.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Window.cpp" />
+    <ClCompile Include="WidgetWindow.cpp" />
+    <ClCompile Include="TextWidgetWindow.cpp" />
+    <ClCompile Include="Logging.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="API">
+      <UniqueIdentifier>{67084dc9-4ea1-4d93-99c1-4d38c58cc737}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
