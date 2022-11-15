@@ -2,6 +2,7 @@
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 #include "..\RABLib\Window.h"
+#include "..\RABLib\DoubleBufferedWindow.h"
 #include "..\RABLib\Windowxx.h"
 #include "..\RABLib\WidgetWindow.h"
 #include "..\RABLib\reg_utils.h"
@@ -98,9 +99,9 @@ struct AppBarCreate
     HKEYPtr hKeyBar;
 };
 
-class RootWindow : public Window
+class RootWindow : public DoubleBufferedWindow
 {
-    typedef Window Base;
+    typedef DoubleBufferedWindow Base;
     friend WindowManager<RootWindow>;
 public:
     static ATOM Register() { return WindowManager<RootWindow>::Register(); }
@@ -149,7 +150,7 @@ void RootWindow::GetCreateWindow(CREATESTRUCT& cs)
 {
     Base::GetCreateWindow(cs);
     cs.lpszName = APPNAME;
-    cs.style = WS_POPUP;
+    cs.style = WS_POPUP | WS_CLIPCHILDREN;
     cs.dwExStyle = WS_EX_TOPMOST | WS_EX_TOOLWINDOW; // | WS_EX_LAYERED;
 }
 
@@ -355,7 +356,24 @@ void RootWindow::OnDraw(const PAINTSTRUCT* pps) const
     auto hOldBrush = MakeSelectObject(hDC, GetStockObject(DC_BRUSH));
 
     for (int i = 0; i < NUM_SECTIONS; ++i)
-        RoundRect(hDC, m_Panel[i], 7, 7);
+    {
+        const int RoundSize = std::min(Width(m_Panel[i]), Height(m_Panel[i]));
+        RoundRect(hDC, m_Panel[i], RoundSize, RoundSize);
+        const std::vector<RECT> rcs = GetRects(m_Widgets[i]);
+        if (!rcs.empty())
+        {
+            auto it = rcs.begin();
+            auto e = it->right;
+            ++it;
+            for (; it != rcs.end(); ++it)
+            {
+                const int x = (e + it->left) / 2;
+                MoveToEx(hDC, x, it->top, nullptr);
+                LineTo(hDC, x, it->bottom);
+                e = it->right;
+            }
+        }
+    }
 }
 
 void RootWindow::PositionAppBar()
@@ -393,11 +411,11 @@ void RootWindow::PositionAppBar()
 
 void RootWindow::PositionWidgets() 
 {
-    const SIZE padding = { 5, 5 };
+    const SIZE padding = { 10, 10 };
 
     const std::vector<RECT> rcs[NUM_SECTIONS] = { GetRects(m_Widgets[0]), GetRects(m_Widgets[1]), GetRects(m_Widgets[2]) };
 
-    SIZE total[NUM_SECTIONS] = {};
+    SIZE total[NUM_SECTIONS] = { padding, padding, padding };
     for (int i = 0; i < NUM_SECTIONS; ++i)
         for (const RECT& rc : rcs[i])
         {
@@ -425,6 +443,7 @@ void RootWindow::PositionWidgets()
             m_Panel[i].top = pt.y;  // TODO For ABE_LEFT and ABE_RIGHT also
             m_Panel[i].left = pt.x;
             m_Panel[i].bottom = m_Panel[i].top;
+            pt.x += padding.cx;
             for (HWND hWndWidget : m_Widgets[i])
             {
                 const RECT& rcWidget = *rcWidgetIt++;

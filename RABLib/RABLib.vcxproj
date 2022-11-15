@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\API\RadAppBar.h" />
+    <ClInclude Include="DoubleBufferedWindow.h" />
     <ClInclude Include="Format.h" />
     <ClInclude Include="gdi_utils.h" />
     <ClInclude Include="Logging.h" />
