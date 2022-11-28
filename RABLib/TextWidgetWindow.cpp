@@ -58,8 +58,8 @@ void TextWidgetWindow::OnDraw(const PAINTSTRUCT* pps) const
     if (m_hIcon != NULL)
     {
         // TODO Fix for ABE_LEFT, ABE_RIGHT
-        const int w = GetSystemMetrics(SM_CXSMICON);
-        const int h = GetSystemMetrics(SM_CYSMICON);
+        const int w = 16;// GetSystemMetrics(SM_CXSMICON);
+        const int h = 16;// GetSystemMetrics(SM_CYSMICON);
         DrawIconEx(hDC, pt.x, pt.y + (Height(rc) - h) / 2, m_hIcon, w, h, 0, NULL, DI_NORMAL);
         pt.x += h + 2;
     }
