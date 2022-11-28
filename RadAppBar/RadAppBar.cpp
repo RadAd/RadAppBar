@@ -19,49 +19,6 @@
 #include <string>
 #include <vector>
 
-std::wstring FormatErrorMessage(HRESULT hr)
-{
-    TCHAR   wszMsgBuff[512];
-    DWORD   dwChars = FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM |
-        FORMAT_MESSAGE_IGNORE_INSERTS,
-        NULL,
-        hr,
-        0,
-        wszMsgBuff,
-        ARRAYSIZE(wszMsgBuff),
-        NULL);
-    while (dwChars > 0 && (wszMsgBuff[dwChars - 1] == TEXT('\n') || wszMsgBuff[dwChars - 1] == TEXT('\r')))
-        --dwChars;
-    wszMsgBuff[dwChars] = TEXT('\0');
-
-    TCHAR   wszFullMsgBuff[1024];
-    _stprintf_s(wszFullMsgBuff, TEXT("Error (0x%08X): %s"), hr, wszMsgBuff);
-    return wszFullMsgBuff;
-}
-
-std::wstring FormatErrorMessage(HRESULT hr, LPCTSTR msg)    // TODO suport varargs
-{
-    TCHAR   wszMsgBuff[512];
-    DWORD   dwChars = FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM |
-        FORMAT_MESSAGE_IGNORE_INSERTS,
-        NULL,
-        hr,
-        0,
-        wszMsgBuff,
-        ARRAYSIZE(wszMsgBuff),
-        NULL);
-    while (dwChars > 0 && (wszMsgBuff[dwChars - 1] == TEXT('\n') || wszMsgBuff[dwChars - 1] == TEXT('\r')))
-        --dwChars;
-    wszMsgBuff[dwChars] = TEXT('\0');
-
-    TCHAR   wszFullMsgBuff[1024];
-    _stprintf_s(wszFullMsgBuff, TEXT("Error (0x%08X) - %s: %s"), hr, msg, wszMsgBuff);
-    return wszFullMsgBuff;
-}
-
-#define CHECKHR(l, b, ...) if (!(b)) { LOG(l, TEXT(#b), FormatErrorMessage(GetLastError(), __VA_ARGS__).c_str()); }
-#define CHECKHR_RET(l, b, r, ...) if (!(b)) { LOG(l, TEXT(#b), FormatErrorMessage(GetLastError(), __VA_ARGS__).c_str()); return r; }
-
 extern HINSTANCE g_hInstance;
 
 inline LONG CalcFontHeight(HWND hWnd, LONG lHeight)
@@ -225,7 +182,7 @@ BOOL RootWindow::OnEraseBkgnd(HDC hdc)
 {
     auto oldColor = MakeDCBrushColor(hdc, m_Default.BackColor);
     RECT rc;
-    CHECKHR_RET(LogLevel::ERROR, GetClientRect(*this, &rc), FALSE);
+    CHECKLE_RET(LogLevel::ERROR, GetClientRect(*this, &rc), FALSE);
     FillRect(hdc, &rc, GetStockBrush(DC_BRUSH));
     return TRUE;
 }
@@ -251,7 +208,7 @@ void RootWindow::OnSetFocus(const HWND hwndOldFocus)
 void RootWindow::OnContextMenu(HWND hwndContext, UINT xPos, UINT yPos)
 {
     MenuPtr hMenu(LoadMenu(g_hInstance, MAKEINTRESOURCE(IDR_MENU1)));
-    CHECKHR(LogLevel::ERROR, hMenu != NULL);
+    CHECKLE(LogLevel::ERROR, hMenu != NULL);
     UINT item = 0;
     switch (m_uEdge)
     {
@@ -261,8 +218,8 @@ void RootWindow::OnContextMenu(HWND hwndContext, UINT xPos, UINT yPos)
     case ABE_RIGHT: item = ID_DOCK_RIGHT; break;
     }
     //CheckMenuItem(hMenu, item, MF_CHECKED | MF_BYCOMMAND);
-    CHECKHR(LogLevel::ERROR, CheckMenuRadioItem(-hMenu, ID_DOCK_TOP, ID_DOCK_RIGHT, item, MF_CHECKED | MF_BYCOMMAND));
-    CHECKHR(LogLevel::ERROR, TrackPopupMenu(GetSubMenu(-hMenu, 0), 0, xPos, yPos, 0, *this, nullptr));
+    CHECKLE(LogLevel::ERROR, CheckMenuRadioItem(-hMenu, ID_DOCK_TOP, ID_DOCK_RIGHT, item, MF_CHECKED | MF_BYCOMMAND));
+    CHECKLE(LogLevel::ERROR, TrackPopupMenu(GetSubMenu(-hMenu, 0), 0, xPos, yPos, 0, *this, nullptr));
 }
 
 void RootWindow::OnCommand(int id, HWND hwndCtl, UINT codeNotify)
@@ -304,7 +261,7 @@ void RootWindow::OnAppBar(int id, BOOL f)
     switch (id)
     {
     case ABN_FULLSCREENAPP:
-        CHECKHR(LogLevel::ERROR, SetWindowPos(f ? HWND_BOTTOM : HWND_TOPMOST, SWP_NOACTIVATE));
+        CHECKLE(LogLevel::ERROR, SetWindowPos(f ? HWND_BOTTOM : HWND_TOPMOST, SWP_NOACTIVATE));
         break;
 
     case ABN_POSCHANGED:
@@ -340,7 +297,7 @@ inline std::vector<RECT> GetRects(const std::vector<HWND>& Widgets)
     for (HWND hWndWidget : Widgets)
     {
         RECT rc = {};
-        CHECKHR(LogLevel::ERROR, GetWindowRect(hWndWidget, &rc));
+        CHECKLE(LogLevel::ERROR, GetWindowRect(hWndWidget, &rc));
         rcs.push_back(rc);
     }
     return rcs;
@@ -384,7 +341,7 @@ void RootWindow::PositionAppBar()
         for (HWND hWndWidget : ws)
         {
             RECT rc = {};
-            CHECKHR(LogLevel::ERROR, GetWindowRect(hWndWidget, &rc));
+            CHECKLE(LogLevel::ERROR, GetWindowRect(hWndWidget, &rc));
             const SIZE szWidget = Size(rc);
 
             sz.cx = std::max(sz.cx, szWidget.cx);
@@ -406,7 +363,7 @@ void RootWindow::PositionAppBar()
     }
     AppBarSetPos(*this, m_uEdge, &rc);
     //MoveWindow(rc, TRUE);
-    CHECKHR(LogLevel::ERROR, SetWindowPos(rc, SWP_NOACTIVATE));
+    CHECKLE(LogLevel::ERROR, SetWindowPos(rc, SWP_NOACTIVATE));
 }
 
 void RootWindow::PositionWidgets() 
@@ -424,7 +381,7 @@ void RootWindow::PositionWidgets()
         }
 
     RECT rcClient;
-    CHECKHR(LogLevel::ERROR, GetClientRect(*this, &rcClient));
+    CHECKLE(LogLevel::ERROR, GetClientRect(*this, &rcClient));
 
     switch (m_uEdge)
     {
@@ -449,7 +406,7 @@ void RootWindow::PositionWidgets()
                 const RECT& rcWidget = *rcWidgetIt++;
 
                 if (pt.x != rcWidget.left || pt.y != rcWidget.top)
-                    CHECKHR(LogLevel::ERROR, ::SetWindowPos(hWndWidget, NULL, pt.x, pt.y, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE));
+                    CHECKLE(LogLevel::ERROR, ::SetWindowPos(hWndWidget, NULL, pt.x, pt.y, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE));
 
                 pt.x += Width(rcWidget) + padding.cx;
                 m_Panel[i].bottom = std::max(m_Panel[i].bottom, m_Panel[i].top + Height(rcWidget));
@@ -477,7 +434,7 @@ void RootWindow::PositionWidgets()
                 const RECT& rcWidget = *rcWidgetIt++;
 
                 if (pt.x != rcWidget.left || (pt.y - Height(rcWidget)) != rcWidget.top)
-                    CHECKHR(LogLevel::ERROR, ::SetWindowPos(hWndWidget, NULL, pt.x, pt.y - Height(rcWidget), 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE));
+                    CHECKLE(LogLevel::ERROR, ::SetWindowPos(hWndWidget, NULL, pt.x, pt.y - Height(rcWidget), 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE));
 
                 pt.y -= Height(rcWidget) + padding.cy;
             }
@@ -500,7 +457,7 @@ void RootWindow::PositionWidgets()
                 const RECT& rcWidget = *rcWidgetIt++;
 
                 if (pt.x != rcWidget.left || pt.y != rcWidget.top)
-                    CHECKHR(LogLevel::ERROR, ::SetWindowPos(hWndWidget, NULL, pt.x, pt.y, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE));
+                    CHECKLE(LogLevel::ERROR, ::SetWindowPos(hWndWidget, NULL, pt.x, pt.y, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE));
 
                 pt.y += Height(rcWidget) + padding.cy;
             }
@@ -538,22 +495,22 @@ bool Run(_In_ const LPCTSTR lpCmdLine, _In_ const int nShowCmd)
 {
     InitLog(NULL, APPNAME);
 
-    CHECKHR_RET(LogLevel::ERROR, RootWindow::Register() != NULL, false);
-    CHECKHR_RET(LogLevel::ERROR, WidgetWindow::Register() != NULL, false);
+    CHECKLE_RET(LogLevel::ERROR, RootWindow::Register() != NULL, false);
+    CHECKLE_RET(LogLevel::ERROR, WidgetWindow::Register() != NULL, false);
 
     {
         AppBarCreate abc;
         HKEYPtr hKeyMain;
-        CHECKHR_RET(LogLevel::ERROR, SUCCEEDED(RegOpenKey(HKEY_CURRENT_USER, _T(R"-(SOFTWARE\RadSoft\RadAppBar)-"), &hKeyMain)), false);
-        CHECKHR_RET(LogLevel::ERROR, SUCCEEDED(RegOpenKey(-hKeyMain, _T("Widgets"), &abc.hKeyWidgets)), false);
+        CHECKHR_RET(LogLevel::ERROR, RegOpenKey(HKEY_CURRENT_USER, _T(R"-(SOFTWARE\RadSoft\RadAppBar)-"), &hKeyMain), false);
+        CHECKHR_RET(LogLevel::ERROR, RegOpenKey(-hKeyMain, _T("Widgets"), &abc.hKeyWidgets), false);
         HKEYPtr hKeyBars;
-        CHECKHR_RET(LogLevel::ERROR, SUCCEEDED(RegOpenKey(-hKeyMain, _T("Bars"), &hKeyBars)), false);
+        CHECKHR_RET(LogLevel::ERROR, RegOpenKey(-hKeyMain, _T("Bars"), &hKeyBars), false);
 
         TCHAR BarName[1024];
         DWORD cbBarName = 0;
         for (int i = 0; cbBarName = ARRAYSIZE(BarName), RegEnumKeyEx(-hKeyBars, i, BarName, &cbBarName, nullptr, nullptr, nullptr, nullptr) == ERROR_SUCCESS; ++i)
         {
-            CHECKHR_RET(LogLevel::ERROR, SUCCEEDED(RegOpenKey(-hKeyBars, BarName, &abc.hKeyBar)), false);
+            CHECKHR_RET(LogLevel::ERROR, RegOpenKey(-hKeyBars, BarName, &abc.hKeyBar), false);
             RootWindow* prw = RootWindow::Create(abc);
             CHECK_RET(LogLevel::ERROR, prw != nullptr, false, TEXT("Error creating root window"));
             InitLog(*prw, APPNAME); // TODO Might be better to have a hidden "main" window

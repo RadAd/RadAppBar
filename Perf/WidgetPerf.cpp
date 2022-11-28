@@ -121,11 +121,11 @@ protected:
         RegGetString(params->hWidget, TEXT("Unit"), m_szUnit, ARRAYSIZE(m_szUnit));
         RegGetString(params->hWidget, TEXT("Icon"), szIcon, ARRAYSIZE(szIcon));
 
-        CHECK(LogLevel::ERROR, SUCCEEDED(PdhOpenQuery(nullptr, 0, &m_hQuery)));
-        CHECK(LogLevel::ERROR, SUCCEEDED(PdhAddEnglishCounter(-m_hQuery, szCounterPath, 0, &m_hCounter)));
-        CHECK(LogLevel::ERROR, SUCCEEDED(PdhCollectQueryData(-m_hQuery)));
+        CHECKHR(LogLevel::ERROR, PdhOpenQuery(nullptr, 0, &m_hQuery));
+        CHECKHR(LogLevel::ERROR, PdhAddEnglishCounter(-m_hQuery, szCounterPath, 0, &m_hCounter));
+        CHECKHR(LogLevel::ERROR, PdhCollectQueryData(-m_hQuery));
 
-        CHECK(LogLevel::ERROR, SetTimer(*this, TIMER_UPDATE, 1000, nullptr));
+        CHECKLE(LogLevel::ERROR, SetTimer(*this, TIMER_UPDATE, 1000, nullptr));
 
         HICON hIcon = (HICON) LoadImage(NULL, szIcon, IMAGE_ICON, 0, 0, LR_LOADFROMFILE | LR_LOADTRANSPARENT);
         SetIcon(hIcon);
@@ -138,15 +138,15 @@ protected:
         {
         case TIMER_UPDATE:
         {
-            CHECK(LogLevel::ERROR, SUCCEEDED(PdhCollectQueryData(m_hQuery.get())));
+            CHECKHR(LogLevel::ERROR, PdhCollectQueryData(m_hQuery.get()));
 
             DWORD dwType;
             PDH_FMT_COUNTERVALUE Value;
-            CHECK(LogLevel::ERROR, SUCCEEDED(PdhGetFormattedCounterValue(m_hCounter, m_dwFormat, &dwType, &Value)));
+            CHECKHR(LogLevel::ERROR, PdhGetFormattedCounterValue(m_hCounter, m_dwFormat, &dwType, &Value));
 
             DWORD dwBufferSize = 0;
             DWORD dwItemCount = 0;
-            CHECK(LogLevel::ERROR, SUCCEEDED(Ignore(PdhGetFormattedCounterArray(m_hCounter, m_dwFormat, &dwBufferSize, &dwItemCount, nullptr), { PDH_STATUS(PDH_MORE_DATA) })));
+            CHECKHR(LogLevel::ERROR, Ignore(PdhGetFormattedCounterArray(m_hCounter, m_dwFormat, &dwBufferSize, &dwItemCount, nullptr), { PDH_STATUS(PDH_MORE_DATA) }));
             //assert(dwItemCount * sizeof(PDH_FMT_COUNTERVALUE) == dwBufferSize);
 
             if (dwItemCount > 1)

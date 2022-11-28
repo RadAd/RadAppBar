@@ -85,3 +85,43 @@ void Log(LogLevel level, LPCTSTR expr, const SourceLocation& src_loc, LPCTSTR fo
     }
     va_end(args);
 }
+
+std::wstring FormatErrorMessage(HRESULT hr)
+{
+    TCHAR   wszMsgBuff[512];
+    DWORD   dwChars = FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM |
+        FORMAT_MESSAGE_IGNORE_INSERTS,
+        NULL,
+        hr,
+        0,
+        wszMsgBuff,
+        ARRAYSIZE(wszMsgBuff),
+        NULL);
+    while (dwChars > 0 && (wszMsgBuff[dwChars - 1] == TEXT('\n') || wszMsgBuff[dwChars - 1] == TEXT('\r')))
+        --dwChars;
+    wszMsgBuff[dwChars] = TEXT('\0');
+
+    TCHAR   wszFullMsgBuff[1024];
+    _stprintf_s(wszFullMsgBuff, TEXT("Error (0x%08X): %s"), hr, wszMsgBuff);
+    return wszFullMsgBuff;
+}
+
+std::wstring FormatErrorMessage(HRESULT hr, LPCTSTR msg)    // TODO suport varargs
+{
+    TCHAR   wszMsgBuff[512];
+    DWORD   dwChars = FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM |
+        FORMAT_MESSAGE_IGNORE_INSERTS,
+        NULL,
+        hr,
+        0,
+        wszMsgBuff,
+        ARRAYSIZE(wszMsgBuff),
+        NULL);
+    while (dwChars > 0 && (wszMsgBuff[dwChars - 1] == TEXT('\n') || wszMsgBuff[dwChars - 1] == TEXT('\r')))
+        --dwChars;
+    wszMsgBuff[dwChars] = TEXT('\0');
+
+    TCHAR   wszFullMsgBuff[1024];
+    _stprintf_s(wszFullMsgBuff, TEXT("Error (0x%08X) - %s: %s"), hr, msg, wszMsgBuff);
+    return wszFullMsgBuff;
+}
