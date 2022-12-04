@@ -313,7 +313,7 @@ protected:
         return pDesktop;
     }
 
-private: // IVDNotification
+private: // IVDNotification Win10::IVirtualDesktopNotification
     virtual void VirtualDesktopCreated(Win10::IVirtualDesktop* pDesktop) override
     {
         SendMessage(*this, WM_UPDATE, TRUE, 0);
@@ -325,6 +325,37 @@ private: // IVDNotification
     }
 
     virtual void CurrentVirtualDesktopChanged(Win10::IVirtualDesktop* pDesktopOld, Win10::IVirtualDesktop* pDesktopNew) override
+    {
+        SendMessage(*this, WM_UPDATE, FALSE, 0);
+    }
+
+    virtual void VirtualDesktopNameChanged(Win10::IVirtualDesktop* pDesktop, HSTRING name) override
+    {
+        SendMessage(*this, WM_UPDATE, FALSE, 0);
+    }
+
+private: // IVDNotification Win11::IVirtualDesktopNotification
+    virtual void VirtualDesktopCreated(Win11::IVirtualDesktop* pDesktop) override
+    {
+        SendMessage(*this, WM_UPDATE, TRUE, 0);
+    }
+
+    virtual void VirtualDesktopDestroyed(Win11::IVirtualDesktop* pDesktopDestroyed, Win11::IVirtualDesktop* pDesktopFallback) override
+    {
+        SendMessage(*this, WM_UPDATE, TRUE, 0);
+    }
+
+    virtual void VirtualDesktopMoved(Win11::IVirtualDesktop* pDesktop, int64_t oldIndex, int64_t newIndex) override
+    {
+        SendMessage(*this, WM_UPDATE, FALSE, 0);
+    }
+
+    virtual void VirtualDesktopNameChanged(Win11::IVirtualDesktop* pDesktop, HSTRING name) override
+    {
+        SendMessage(*this, WM_UPDATE, FALSE, 0);
+    }
+
+    virtual void CurrentVirtualDesktopChanged(Win11::IVirtualDesktop* pDesktopOld, Win11::IVirtualDesktop* pDesktopNew) override
     {
         SendMessage(*this, WM_UPDATE, FALSE, 0);
     }
@@ -396,7 +427,7 @@ protected:
         }
     }
 
-private: // IVDNotification
+private: // IVDNotification Win10::IVirtualDesktopNotification
     virtual void VirtualDesktopCreated(Win10::IVirtualDesktop* pDesktop) override
     {
     }
@@ -408,6 +439,36 @@ private: // IVDNotification
     virtual void CurrentVirtualDesktopChanged(Win10::IVirtualDesktop* pDesktopOld, Win10::IVirtualDesktop* pDesktopNew) override
     {
         SendMessage(*this, WM_UPDATE, 0, reinterpret_cast<LPARAM>(pDesktopNew));
+    }
+
+    virtual void VirtualDesktopNameChanged(Win10::IVirtualDesktop* pDesktop, HSTRING name) override
+    {
+        SendMessage(*this, WM_UPDATE, 0, reinterpret_cast<LPARAM>(pDesktop));
+    }
+
+private: // IVDNotification Win11::IVirtualDesktopNotification
+    virtual void VirtualDesktopCreated(Win11::IVirtualDesktop* pDesktop) override
+    {
+    }
+
+    virtual void VirtualDesktopDestroyed(Win11::IVirtualDesktop* pDesktopDestroyed, Win11::IVirtualDesktop* pDesktopFallback) override
+    {
+    }
+
+    virtual void VirtualDesktopMoved(Win11::IVirtualDesktop* pDesktop, int64_t oldIndex, int64_t newIndex) override
+    {
+    }
+
+    virtual void VirtualDesktopNameChanged(Win11::IVirtualDesktop* pDesktop, HSTRING name) override
+    {
+        // TODO Support Win11
+        //SendMessage(*this, WM_UPDATE, 0, reinterpret_cast<LPARAM>(pDesktop));
+    }
+
+    virtual void CurrentVirtualDesktopChanged(Win11::IVirtualDesktop* pDesktopOld, Win11::IVirtualDesktop* pDesktopNew) override
+    {
+        // TODO Support Win11
+        //SendMessage(*this, WM_UPDATE, 0, reinterpret_cast<LPARAM>(pDesktopNew));
     }
 
 private:
