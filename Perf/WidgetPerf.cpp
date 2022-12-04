@@ -102,6 +102,7 @@ public:
 protected:
     void HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT* pResult) override
     {
+        InitLog(*this, TEXT("WidgetPerf"));
         switch (uMsg)
         {
             HANDLE_NOT(WM_CREATE, Base::HandleMessage, OnCreate);
@@ -142,10 +143,11 @@ protected:
 
             DWORD dwType;
             PDH_FMT_COUNTERVALUE Value;
-            CHECKHR(LogLevel::ERROR, PdhGetFormattedCounterValue(m_hCounter, m_dwFormat, &dwType, &Value));
+            CHECKHR(LogLevel::ERROR, Ignore(PdhGetFormattedCounterValue(m_hCounter, m_dwFormat, &dwType, &Value), { PDH_STATUS(PDH_CALC_NEGATIVE_DENOMINATOR) }));
 
             DWORD dwBufferSize = 0;
             DWORD dwItemCount = 0;
+            PDH_INVALID_ARGUMENT;
             CHECKHR(LogLevel::ERROR, Ignore(PdhGetFormattedCounterArray(m_hCounter, m_dwFormat, &dwBufferSize, &dwItemCount, nullptr), { PDH_STATUS(PDH_MORE_DATA) }));
             //assert(dwItemCount * sizeof(PDH_FMT_COUNTERVALUE) == dwBufferSize);
 
