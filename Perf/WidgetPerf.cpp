@@ -111,26 +111,20 @@ protected:
         }
     }
 
-    BOOL OnCreate(const LPCREATESTRUCT lpCreateStruct, LRESULT* pResult)
+    void OnCreate(const LPCREATESTRUCT lpCreateStruct, LRESULT* pResult)
     {
         const WidgetParams* params = reinterpret_cast<WidgetParams*>(lpCreateStruct->lpCreateParams);
 
         TCHAR szCounterPath[1024] = TEXT("\\Processor(_Total)\\% Processor Time");
-        TCHAR szIcon[MAX_PATH] = TEXT("");
         RegGetString(params->hWidget, TEXT("Counter"), szCounterPath, ARRAYSIZE(szCounterPath));
         RegGetString(params->hWidget, TEXT("Name"), m_szName, ARRAYSIZE(m_szName));
         RegGetString(params->hWidget, TEXT("Unit"), m_szUnit, ARRAYSIZE(m_szUnit));
-        RegGetString(params->hWidget, TEXT("Icon"), szIcon, ARRAYSIZE(szIcon));
 
         CHECKHR(LogLevel::ERROR, PdhOpenQuery(nullptr, 0, &m_hQuery));
         CHECKHR(LogLevel::ERROR, PdhAddEnglishCounter(-m_hQuery, szCounterPath, 0, &m_hCounter));
         CHECKHR(LogLevel::ERROR, PdhCollectQueryData(-m_hQuery));
 
         CHECKLE(LogLevel::ERROR, SetTimer(*this, TIMER_UPDATE, 1000, nullptr));
-
-        HICON hIcon = (HICON) LoadImage(NULL, szIcon, IMAGE_ICON, 0, 0, LR_LOADFROMFILE | LR_LOADTRANSPARENT);
-        SetIcon(hIcon);
-        return TRUE;
     }
 
     void OnTimer(UINT id)

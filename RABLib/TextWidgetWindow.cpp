@@ -3,6 +3,8 @@
 #define NOMINMAX
 #include "TextWidgetWindow.h"
 #include "..\API\RadAppBar.h"
+#include "Windowxx.h"
+#include "reg_utils.h"
 #include "gdi_utils.h"
 #include "memory_utils.h"
 
@@ -30,6 +32,27 @@ SIZE TextWidgetWindow::CalcSize()
     if (m_uEdge == ABE_LEFT || m_uEdge == ABE_RIGHT)
         std::swap(sz.cx, sz.cy);
     return sz;
+}
+
+void TextWidgetWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT* pResult)
+{
+    switch (uMsg)
+    {
+        HANDLE_NOT(WM_CREATE, WidgetWindow::HandleMessage, OnCreate);
+        HANDLE_DEF(WidgetWindow::HandleMessage);
+    }
+}
+
+void TextWidgetWindow::OnCreate(const LPCREATESTRUCT lpCreateStruct, LRESULT* pResult)
+{
+    const WidgetParams* params = reinterpret_cast<WidgetParams*>(lpCreateStruct->lpCreateParams);
+
+    TCHAR szIcon[MAX_PATH] = TEXT("");
+    RegGetString(params->hWidget, TEXT("Icon"), szIcon, ARRAYSIZE(szIcon));
+
+    HICON hIcon = (HICON) LoadImage(NULL, szIcon, IMAGE_ICON, 0, 0, LR_LOADFROMFILE | LR_LOADTRANSPARENT);
+    if (SetIcon(hIcon))
+        FixSize();
 }
 
 void TextWidgetWindow::OnDraw(const PAINTSTRUCT* pps) const

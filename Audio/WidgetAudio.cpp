@@ -133,23 +133,18 @@ protected:
         Update();
     }
 
-    BOOL OnCreate(const LPCREATESTRUCT lpCreateStruct, LRESULT* pResult)
+    void OnCreate(const LPCREATESTRUCT lpCreateStruct, LRESULT* pResult)
     {
         const WidgetParams* params = reinterpret_cast<WidgetParams*>(lpCreateStruct->lpCreateParams);
 
-        TCHAR szIcon[MAX_PATH] = TEXT("");
         TCHAR szMute[MAX_PATH] = TEXT("");
-        RegGetString(params->hWidget, TEXT("Icon"), szIcon, ARRAYSIZE(szIcon));
         RegGetString(params->hWidget, TEXT("Mute"), szMute, ARRAYSIZE(szMute));
 
-        m_hIcon = (HICON) LoadImage(NULL, szIcon, IMAGE_ICON, 0, 0, LR_LOADFROMFILE | LR_LOADTRANSPARENT);
+        m_hIcon = GetIcon();
         m_hMute = (HICON) LoadImage(NULL, szMute, IMAGE_ICON, 0, 0, LR_LOADFROMFILE | LR_LOADTRANSPARENT);
-        if (SetIcon(m_hIcon))
-            FixSize();
 
         m_pClient->Init(*this);
         m_pNotify->Init(*this);
-        return TRUE;
     }
 
     void HandleMessage(const UINT uMsg, const WPARAM wParam, const LPARAM lParam, LRESULT* pResult)
