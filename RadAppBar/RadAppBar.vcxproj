@@ -68,6 +68,9 @@
     <ResourceCompile Include="RadAppBar.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Audio\Audio.vcxproj">
+      <Project>{6de1b504-793e-4b75-a4c8-0d700a5b0ade}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\DateTime\DateTime.vcxproj">
       <Project>{3e8becd4-41de-438c-93bb-18dd16b38be6}</Project>
     </ProjectReference>

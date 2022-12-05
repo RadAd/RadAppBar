@@ -15,6 +15,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FgWindow", "FgWindow\FgWind
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Perf", "Perf\Perf.vcxproj", "{EC29850C-CA11-4202-804B-B42625C357F9}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Audio", "Audio\Audio.vcxproj", "{6DE1B504-793E-4B75-A4C8-0D700A5B0ADE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -71,6 +73,14 @@ Global
 		{EC29850C-CA11-4202-804B-B42625C357F9}.Release|x64.Build.0 = Release|x64
 		{EC29850C-CA11-4202-804B-B42625C357F9}.Release|x86.ActiveCfg = Release|Win32
 		{EC29850C-CA11-4202-804B-B42625C357F9}.Release|x86.Build.0 = Release|Win32
+		{6DE1B504-793E-4B75-A4C8-0D700A5B0ADE}.Debug|x64.ActiveCfg = Debug|x64
+		{6DE1B504-793E-4B75-A4C8-0D700A5B0ADE}.Debug|x64.Build.0 = Debug|x64
+		{6DE1B504-793E-4B75-A4C8-0D700A5B0ADE}.Debug|x86.ActiveCfg = Debug|Win32
+		{6DE1B504-793E-4B75-A4C8-0D700A5B0ADE}.Debug|x86.Build.0 = Debug|Win32
+		{6DE1B504-793E-4B75-A4C8-0D700A5B0ADE}.Release|x64.ActiveCfg = Release|x64
+		{6DE1B504-793E-4B75-A4C8-0D700A5B0ADE}.Release|x64.Build.0 = Release|x64
+		{6DE1B504-793E-4B75-A4C8-0D700A5B0ADE}.Release|x86.ActiveCfg = Release|Win32
+		{6DE1B504-793E-4B75-A4C8-0D700A5B0ADE}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
