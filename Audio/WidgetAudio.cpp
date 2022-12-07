@@ -124,10 +124,7 @@ protected:
         ATLVERIFY(SUCCEEDED(CComObject<AudioEndpointVolumeCallback>::CreateInstance(&pNotify)));
         m_pNotify = pNotify;
 
-        ATL::CComPtr<IMMDeviceEnumerator> pEnumerator;
-        ATLENSURE(SUCCEEDED(pEnumerator.CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr, CLSCTX_INPROC_SERVER)));
-
-        ATLENSURE(SUCCEEDED(pEnumerator->RegisterEndpointNotificationCallback(pClient)));
+        ATLENSURE(SUCCEEDED(m_pEnumerator.CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr, CLSCTX_INPROC_SERVER)));
 
         Register();
         Update();
@@ -145,6 +142,14 @@ protected:
 
         m_pClient->Init(*this);
         m_pNotify->Init(*this);
+
+        ATLENSURE(SUCCEEDED(m_pEnumerator->RegisterEndpointNotificationCallback(m_pClient)));
+    }
+
+    void OnDestroy()
+    {
+        ATLENSURE(SUCCEEDED(m_pEnumerator->UnregisterEndpointNotificationCallback(m_pClient)));
+        Unregister();
     }
 
     void HandleMessage(const UINT uMsg, const WPARAM wParam, const LPARAM lParam, LRESULT* pResult)
@@ -158,24 +163,27 @@ protected:
         switch (uMsg)
         {
             HANDLE_NOT(WM_CREATE, Base::HandleMessage, OnCreate);
+            HANDLE_NOT(WM_DESTROY, Base::HandleMessage, OnDestroy);
             HANDLE_DEF(Base::HandleMessage);
         }
     }
 
-    void Register()
+    void Unregister()
     {
         if (m_pAudioEndpointVolume)
         {
             ATLENSURE(SUCCEEDED(m_pAudioEndpointVolume->UnregisterControlChangeNotify(m_pNotify)));
             m_pAudioEndpointVolume.Release();
         }
+    }
 
-        ATL::CComPtr<IMMDeviceEnumerator> pEnumerator;
-        ATLENSURE(SUCCEEDED(pEnumerator.CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr, CLSCTX_INPROC_SERVER)));
+    void Register()
+    {
+        Unregister();
 
         // Get default audio-rendering device.
         ATL::CComPtr<IMMDevice> pDevice;
-        ATLENSURE(SUCCEEDED(pEnumerator->GetDefaultAudioEndpoint(eRender, eConsole, &pDevice)));
+        ATLENSURE(SUCCEEDED(m_pEnumerator->GetDefaultAudioEndpoint(eRender, eConsole, &pDevice)));
 
         ATL::CComPtr<IAudioEndpointVolume> pAudioEndpointVolume;
         ATLENSURE(SUCCEEDED(pDevice->Activate(
@@ -207,6 +215,7 @@ protected:
     }
 
 private:
+    ATL::CComPtr<IMMDeviceEnumerator> m_pEnumerator;
     ATL::CComPtr<MMNotificationClient> m_pClient;
     ATL::CComPtr<IAudioEndpointVolume> m_pAudioEndpointVolume;
     ATL::CComPtr<AudioEndpointVolumeCallback> m_pNotify;
@@ -231,18 +240,20 @@ protected:
         ATLVERIFY(SUCCEEDED(CComObject<MMNotificationClient>::CreateInstance(&pClient)));
         m_pClient = pClient;
 
-        ATL::CComPtr<IMMDeviceEnumerator> pEnumerator;
-        ATLENSURE(SUCCEEDED(pEnumerator.CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr, CLSCTX_INPROC_SERVER)));
-
-        ATLENSURE(SUCCEEDED(pEnumerator->RegisterEndpointNotificationCallback(pClient)));
+        ATLENSURE(SUCCEEDED(m_pEnumerator.CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr, CLSCTX_INPROC_SERVER)));
 
         Update();
     }
 
-    BOOL OnCreate(const LPCREATESTRUCT lpCreateStruct, LRESULT* pResult)
+    void OnCreate(const LPCREATESTRUCT lpCreateStruct, LRESULT* pResult)
     {
         m_pClient->Init(*this);
-        return TRUE;
+        ATLENSURE(SUCCEEDED(m_pEnumerator->RegisterEndpointNotificationCallback(m_pClient)));
+    }
+
+    void OnDestroy()
+    {
+        ATLENSURE(SUCCEEDED(m_pEnumerator->UnregisterEndpointNotificationCallback(m_pClient)));
     }
 
     void HandleMessage(const UINT uMsg, const WPARAM wParam, const LPARAM lParam, LRESULT* pResult)
@@ -255,18 +266,16 @@ protected:
         switch (uMsg)
         {
             HANDLE_NOT(WM_CREATE, Base::HandleMessage, OnCreate);
+            HANDLE_NOT(WM_DESTROY, Base::HandleMessage, OnDestroy);
             HANDLE_DEF(Base::HandleMessage);
         }
     }
 
     bool Update()
     {
-        ATL::CComPtr<IMMDeviceEnumerator> pEnumerator;
-        ATLENSURE_RETURN_VAL(SUCCEEDED(pEnumerator.CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr, CLSCTX_INPROC_SERVER)), false);
-
         // Get default audio-rendering device.
         ATL::CComPtr<IMMDevice> pDevice;
-        ATLENSURE_RETURN_VAL(SUCCEEDED(pEnumerator->GetDefaultAudioEndpoint(eRender, eConsole, &pDevice)), false);
+        ATLENSURE_RETURN_VAL(SUCCEEDED(m_pEnumerator->GetDefaultAudioEndpoint(eRender, eConsole, &pDevice)), false);
 
         // Open device properties
         ATL::CComPtr<IPropertyStore> pProps;
@@ -288,6 +297,7 @@ protected:
     }
 
 private:
+    ATL::CComPtr<IMMDeviceEnumerator> m_pEnumerator;
     ATL::CComPtr<MMNotificationClient> m_pClient;
 };
 
