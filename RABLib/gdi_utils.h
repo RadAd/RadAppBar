@@ -115,29 +115,28 @@ _NODISCARD inline auto MakeBkColor(const HDC hDC, const COLORREF c)
 {
     typedef GdiFunctionDeleter<HDC, ak_toolkit::mark_int<COLORREF, RGB(255, 0, 255)>, SetBkColor> Deleter;
     //typedef GdiFunctionDeleter<HDC, ak_toolkit::mark_optional<std::optional<COLORREF>>, SetBkColor> Deleter; // TODO This is needed because all values are valid
-    return std::unique_ptr<COLORREF, Deleter>(Deleter::call(hDC, c & 0xFFFFFF), Deleter(hDC));
+    return std::unique_ptr<COLORREF, Deleter>(Deleter::call(hDC, c), Deleter(hDC));
 }
 
 _NODISCARD inline auto MakeTextColor(const HDC hDC, const COLORREF c)
 {
-    COLORREF r = SetTextColor(hDC, c);
     typedef GdiFunctionDeleter<HDC, ak_toolkit::mark_int<COLORREF, RGB(255, 0, 255)>, SetTextColor> Deleter;
     //typedef GdiFunctionDeleter<HDC, ak_toolkit::mark_optional<std::optional<COLORREF>>, SetTextColor> Deleter; // TODO This is needed because all values are valid
-    return std::unique_ptr<COLORREF, Deleter>(Deleter::call(hDC, c & 0xFFFFFF), Deleter(hDC));
+    return std::unique_ptr<COLORREF, Deleter>(Deleter::call(hDC, c), Deleter(hDC));
 }
 
 _NODISCARD inline auto MakeDCBrushColor(const HDC hDC, const COLORREF c)
 {
     typedef GdiFunctionDeleter<HDC, ak_toolkit::mark_int<COLORREF, RGB(255, 0, 255)>, SetDCBrushColor> Deleter;
     //typedef GdiFunctionDeleter<HDC, ak_toolkit::mark_optional<std::optional<COLORREF>>, SetDCBrushColor> Deleter; // TODO This is needed because all values are valid
-    return std::unique_ptr<COLORREF, Deleter>(Deleter::call(hDC, c & 0xFFFFFF), Deleter(hDC));
+    return std::unique_ptr<COLORREF, Deleter>(Deleter::call(hDC, c), Deleter(hDC));
 }
 
 _NODISCARD inline auto MakeDCPenColor(const HDC hDC, const COLORREF c)
 {
     typedef GdiFunctionDeleter<HDC, ak_toolkit::mark_int<COLORREF, RGB(255, 0, 255)>, SetDCPenColor> Deleter;
     //typedef GdiFunctionDeleter<HDC, ak_toolkit::mark_optional<std::optional<COLORREF>>, SetDCPenColor> Deleter; // TODO This is needed because all values are valid
-    return std::unique_ptr<COLORREF, Deleter>(Deleter::call(hDC, c & 0xFFFFFF), Deleter(hDC));
+    return std::unique_ptr<COLORREF, Deleter>(Deleter::call(hDC, c), Deleter(hDC));
 }
 
 
@@ -175,26 +174,4 @@ inline BOOL Rectangle(HDC hDC, RECT rc)
 inline BOOL RoundRect(HDC hDC, RECT rc, int w, int h)
 {
     return RoundRect(hDC, rc.left, rc.top, rc.right, rc.bottom, w, h);
-}
-
-inline COLORREF ARGB(BYTE a, BYTE r, BYTE g, BYTE b)
-{
-    return CMYK(a, b, g, r);
-}
-
-inline int PixelBlt(HDC hdc, int x, int y, int cx, int cy, COLORREF c, DWORD rop)
-{
-    BITMAPINFO bi = {};
-    bi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-    bi.bmiHeader.biWidth = 1;
-    bi.bmiHeader.biHeight = 1;
-    bi.bmiHeader.biPlanes = 1;
-    bi.bmiHeader.biBitCount = 32;
-    bi.bmiHeader.biCompression = BI_RGB;
-
-    RGBQUAD bitmapBits = reinterpret_cast<RGBQUAD&>(c);
-
-    return StretchDIBits(hdc, x, y, cx, cy,
-        0, 0, 1, 1, &bitmapBits, &bi,
-        DIB_RGB_COLORS, rop);
 }
