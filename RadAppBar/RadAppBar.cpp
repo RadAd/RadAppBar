@@ -19,6 +19,138 @@
 #include <string>
 #include <vector>
 
+#include <Unknwn.h>
+#include <Gdiplus.h>
+
+void GetRoundRectPath(Gdiplus::GraphicsPath* pPath, Gdiplus::Rect r, int dia)
+{
+    // diameter can't exceed width or height
+    if (dia > r.Width)  dia = r.Width;
+    if (dia > r.Height) dia = r.Height;
+
+    // define a corner 
+    Gdiplus::Rect Corner(r.X, r.Y, dia, dia);
+
+    pPath->Reset();
+
+    // top left
+    pPath->AddArc(Corner, 180, 90);
+
+#if 0
+    // tweak needed for radius of 10 (dia of 20)
+    if (dia == 20)
+    {
+        Corner.Width += 1;
+        Corner.Height += 1;
+        r.Width -= 1;
+        r.Height -= 1;
+    }
+#endif
+
+    // top right
+    Corner.X += (r.Width - dia - 1);
+    pPath->AddArc(Corner, 270, 90);
+
+    // bottom right
+    Corner.Y += (r.Height - dia - 1);
+    pPath->AddArc(Corner, 0, 90);
+
+    // bottom left
+    Corner.X -= (r.Width - dia - 1);
+    pPath->AddArc(Corner, 90, 90);
+
+    // end path
+    pPath->CloseFigure();
+}
+
+inline Gdiplus::Rect ToGdiRect(RECT r)
+{
+    return Gdiplus::Rect(r.left, r.top, Width(r), Height(r));
+}
+
+inline COLORREF Swap(COLORREF c)
+{
+    RGBQUAD& q = reinterpret_cast<RGBQUAD&>(c);
+    BYTE t = q.rgbRed;
+    q.rgbRed = q.rgbBlue;
+    q.rgbBlue = t;
+    return c;
+}
+
+COLORREF FixColor(COLORREF c)
+{
+    RGBQUAD& q = reinterpret_cast<RGBQUAD&>(c);
+    if (q.rgbReserved == 0)
+        q.rgbReserved = 254;
+    return c;
+}
+
+void SetWindowBlur(HWND hWnd)
+{
+    const HINSTANCE hModule = GetModuleHandle(TEXT("user32.dll"));
+    if (hModule)
+    {
+        typedef enum _ACCENT_STATE {
+            ACCENT_DISABLED,
+            ACCENT_ENABLE_GRADIENT,
+            ACCENT_ENABLE_TRANSPARENTGRADIENT,
+            ACCENT_ENABLE_BLURBEHIND,
+            ACCENT_ENABLE_ACRYLICBLURBEHIND,
+            ACCENT_INVALID_STATE
+        } ACCENT_STATE;
+        struct ACCENTPOLICY
+        {
+            ACCENT_STATE nAccentState;
+            DWORD nFlags;
+            DWORD nColor;
+            DWORD nAnimationId;
+        };
+        typedef enum _WINDOWCOMPOSITIONATTRIB {
+            WCA_UNDEFINED = 0,
+            WCA_NCRENDERING_ENABLED = 1,
+            WCA_NCRENDERING_POLICY = 2,
+            WCA_TRANSITIONS_FORCEDISABLED = 3,
+            WCA_ALLOW_NCPAINT = 4,
+            WCA_CAPTION_BUTTON_BOUNDS = 5,
+            WCA_NONCLIENT_RTL_LAYOUT = 6,
+            WCA_FORCE_ICONIC_REPRESENTATION = 7,
+            WCA_EXTENDED_FRAME_BOUNDS = 8,
+            WCA_HAS_ICONIC_BITMAP = 9,
+            WCA_THEME_ATTRIBUTES = 10,
+            WCA_NCRENDERING_EXILED = 11,
+            WCA_NCADORNMENTINFO = 12,
+            WCA_EXCLUDED_FROM_LIVEPREVIEW = 13,
+            WCA_VIDEO_OVERLAY_ACTIVE = 14,
+            WCA_FORCE_ACTIVEWINDOW_APPEARANCE = 15,
+            WCA_DISALLOW_PEEK = 16,
+            WCA_CLOAK = 17,
+            WCA_CLOAKED = 18,
+            WCA_ACCENT_POLICY = 19,
+            WCA_FREEZE_REPRESENTATION = 20,
+            WCA_EVER_UNCLOAKED = 21,
+            WCA_VISUAL_OWNER = 22,
+            WCA_LAST = 23
+        } WINDOWCOMPOSITIONATTRIB;
+        struct WINCOMPATTRDATA
+        {
+            WINDOWCOMPOSITIONATTRIB nAttribute;
+            PVOID pData;
+            ULONG ulDataSize;
+        };
+        typedef BOOL(WINAPI* pSetWindowCompositionAttribute)(HWND, WINCOMPATTRDATA*);
+        const pSetWindowCompositionAttribute SetWindowCompositionAttribute = (pSetWindowCompositionAttribute) GetProcAddress(hModule, "SetWindowCompositionAttribute");
+        if (SetWindowCompositionAttribute)
+        {
+            //ACCENTPOLICY policy = { ACCENT_ENABLE_ACRYLICBLURBEHIND, 0, 0x20FF0000, 0 };
+            ACCENTPOLICY policy = { ACCENT_ENABLE_BLURBEHIND };
+            WINCOMPATTRDATA data = { WCA_ACCENT_POLICY, &policy, sizeof(ACCENTPOLICY) };
+            SetWindowCompositionAttribute(hWnd, &data);
+            //DwmSetWindowAttribute(hWnd, WCA_ACCENT_POLICY, &policy, sizeof(ACCENTPOLICY));
+        }
+        //FreeLibrary(hModule);
+    }
+}
+
 extern HINSTANCE g_hInstance;
 
 inline LONG CalcFontHeight(HWND hWnd, LONG lHeight)
@@ -116,10 +248,10 @@ void RootWindow::OnCreate(const LPCREATESTRUCT lpCreateStruct, LRESULT* pResult)
     const AppBarCreate& abc = *reinterpret_cast<AppBarCreate*>(lpCreateStruct->lpCreateParams);
 
     m_uEdge = RegGetDWORD(-abc.hKeyBar, _T("Edge"), ABE_TOP);
-    m_Default.BackColor = RegGetDWORD(-abc.hKeyBar, _T("BackColor"), m_Default.BackColor);
-    m_Default.PanelColor = RegGetDWORD(-abc.hKeyBar, _T("PanelColor"), m_Default.PanelColor);
-    m_Default.FontColor = RegGetDWORD(-abc.hKeyBar, _T("FontColor"), m_Default.FontColor);
-    m_Default.HighlightColor = RegGetDWORD(-abc.hKeyBar, _T("HighlightColor"), m_Default.HighlightColor);
+    m_Default.BackColor = FixColor(RegGetDWORD(-abc.hKeyBar, _T("BackColor"), m_Default.BackColor));
+    m_Default.PanelColor = FixColor(RegGetDWORD(-abc.hKeyBar, _T("PanelColor"), m_Default.PanelColor));
+    m_Default.FontColor = FixColor(RegGetDWORD(-abc.hKeyBar, _T("FontColor"), m_Default.FontColor));
+    m_Default.HighlightColor = FixColor(RegGetDWORD(-abc.hKeyBar, _T("HighlightColor"), m_Default.HighlightColor));
     RegGetString(-abc.hKeyBar, _T("FontFace"), m_Default.FontFace, ARRAYSIZE(m_Default.FontFace));
     m_Default.lFontHeight = RegGetDWORD(-abc.hKeyBar, _T("FontHeight"), m_Default.lFontHeight);
     CreateFonts();
@@ -165,6 +297,8 @@ void RootWindow::OnCreate(const LPCREATESTRUCT lpCreateStruct, LRESULT* pResult)
     AppBarNew(*this, WM_APPBAR);
     PositionAppBar();
     PositionWidgets();
+
+    SetWindowBlur(*this);
 }
 
 void RootWindow::OnDestroy()
@@ -180,10 +314,16 @@ void RootWindow::OnDestroy()
 
 BOOL RootWindow::OnEraseBkgnd(HDC hdc)
 {
-    auto oldColor = MakeDCBrushColor(hdc, m_Default.BackColor);
     RECT rc;
     CHECKLE_RET(LogLevel::ERROR, GetClientRect(*this, &rc), FALSE);
+#if 0
+    auto oldColor = MakeDCBrushColor(hdc, m_Default.BackColor);
     FillRect(hdc, &rc, GetStockBrush(DC_BRUSH));
+#else
+    Gdiplus::Graphics g(hdc);
+    Gdiplus::SolidBrush brush(Swap(m_Default.BackColor));
+    g.FillRectangle(&brush, ToGdiRect(rc));
+#endif
     return TRUE;
 }
 
@@ -298,6 +438,10 @@ inline std::vector<RECT> GetRects(const std::vector<HWND>& Widgets)
     {
         RECT rc = {};
         CHECKLE(LogLevel::ERROR, GetWindowRect(hWndWidget, &rc));
+        HWND hWndParent = GetParent(hWndWidget);
+        LPPOINT pt = (LPPOINT) &rc;
+        CHECKLE(LogLevel::ERROR, ScreenToClient(hWndParent, &pt[0]));
+        CHECKLE(LogLevel::ERROR, ScreenToClient(hWndParent, &pt[1]));
         rcs.push_back(rc);
     }
     return rcs;
@@ -305,17 +449,32 @@ inline std::vector<RECT> GetRects(const std::vector<HWND>& Widgets)
 
 void RootWindow::OnDraw(const PAINTSTRUCT* pps) const
 {
+#if 0
     HDC hDC = pps->hdc;
 
     auto DCPenColor = MakeDCPenColor(hDC, RGB(100, 100, 100));
     auto DCBrushColor = MakeDCBrushColor(hDC, m_Default.PanelColor);
     auto hOldPen = MakeSelectObject(hDC, GetStockObject(DC_PEN));
     auto hOldBrush = MakeSelectObject(hDC, GetStockObject(DC_BRUSH));
+#else
+    Gdiplus::Graphics g(pps->hdc);
+    Gdiplus::Pen pen(Gdiplus::Color(255, 100, 100, 100));
+    pen.SetAlignment(Gdiplus::PenAlignmentCenter);
+    Gdiplus::SolidBrush brush(Swap(m_Default.PanelColor));
+#endif
 
     for (int i = 0; i < NUM_SECTIONS; ++i)
     {
         const int RoundSize = std::min(Width(m_Panel[i]), Height(m_Panel[i]));
+#if 0
         RoundRect(hDC, m_Panel[i], RoundSize, RoundSize);
+#else
+        Gdiplus::GraphicsPath path;
+        GetRoundRectPath(&path, ToGdiRect(m_Panel[i]), RoundSize);
+        g.FillPath(&brush, &path);
+        g.DrawPath(&pen, &path);
+#endif
+
         const std::vector<RECT> rcs = GetRects(m_Widgets[i]);
         if (!rcs.empty())
         {
@@ -325,8 +484,12 @@ void RootWindow::OnDraw(const PAINTSTRUCT* pps) const
             for (; it != rcs.end(); ++it)
             {
                 const int x = (e + it->left) / 2;
+#if 0
                 MoveToEx(hDC, x, it->top, nullptr);
                 LineTo(hDC, x, it->bottom);
+#else
+                g.DrawLine(&pen, Gdiplus::Point(x, it->top), Gdiplus::Point(x, it->bottom));
+#endif
                 e = it->right;
             }
         }
@@ -491,7 +654,7 @@ void RootWindow::SetEdge(UINT uEdge)
     PositionWidgets();
 }
 
-bool Run(_In_ const LPCTSTR lpCmdLine, _In_ const int nShowCmd)
+bool Init(_In_ const LPCTSTR lpCmdLine, _In_ const int nShowCmd)
 {
     InitLog(NULL, APPNAME);
 
