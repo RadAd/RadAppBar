@@ -6,9 +6,10 @@ struct WidgetParams;
 
 class TextWidgetWindow : public WidgetWindow
 {
+    typedef WidgetWindow Base;
     friend WindowManager<TextWidgetWindow>;
 public:
-    static WidgetWindow* Create(HWND hWndParent, const WidgetParams* params);
+    static TextWidgetWindow* Create(HWND hWndParent, const WidgetParams* params);
 
 protected:
     virtual SIZE CalcSize() override;

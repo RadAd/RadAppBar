@@ -11,7 +11,7 @@
 #include <algorithm>
 #include <tchar.h>
 
-WidgetWindow* TextWidgetWindow::Create(HWND hWndParent, const WidgetParams* params)
+TextWidgetWindow* TextWidgetWindow::Create(HWND hWndParent, const WidgetParams* params)
 {
     return WindowManager<TextWidgetWindow>::Create(hWndParent, const_cast<WidgetParams*>(params));
 }
@@ -38,8 +38,8 @@ void TextWidgetWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, LR
 {
     switch (uMsg)
     {
-        HANDLE_NOT(WM_CREATE, WidgetWindow::HandleMessage, OnCreate);
-        HANDLE_DEF(WidgetWindow::HandleMessage);
+        HANDLE_NOT(WM_CREATE, Base::HandleMessage, OnCreate);
+        HANDLE_DEF(Base::HandleMessage);
     }
 }
 
@@ -57,6 +57,8 @@ void TextWidgetWindow::OnCreate(const LPCREATESTRUCT lpCreateStruct, LRESULT* pR
 
 void TextWidgetWindow::OnDraw(const PAINTSTRUCT* pps) const
 {
+    //Base::OnDraw(pps);
+
     HDC hDC = pps->hdc;
 
     RECT rc = { };
