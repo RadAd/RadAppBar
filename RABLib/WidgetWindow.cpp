@@ -40,7 +40,7 @@ void WidgetWindow::OnSize(UINT state, int cx, int cy)
 
 BOOL WidgetWindow::OnEraseBkgnd(HDC hdc)
 {
-    auto DCBrushColor = MakeDCBrushColor(hdc, m_pResources->PanelColor);
+    auto DCBrushColor = MakeDCBrushColor(hdc, m_pResources->PanelBackColor);
     RECT rc;
     GetClientRect(*this, &rc);
     FillRect(hdc, &rc, GetStockBrush(DC_BRUSH));

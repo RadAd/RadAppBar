@@ -17,7 +17,8 @@ extern "C"
 struct Resources
 {
     COLORREF BackColor = RGB(255, 255, 255);
-    COLORREF PanelColor = RGB(40, 40, 40);
+    COLORREF PanelBackColor = RGB(40, 40, 40);
+    COLORREF PanelBorderColor = RGB(100, 100, 100);
     TCHAR FontFace[32] = TEXT("Segoe UI");
     LONG lFontHeight = 10;
     HFONT hFont = NULL;

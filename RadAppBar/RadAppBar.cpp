@@ -249,7 +249,8 @@ void RootWindow::OnCreate(const LPCREATESTRUCT lpCreateStruct, LRESULT* pResult)
 
     m_uEdge = RegGetDWORD(-abc.hKeyBar, _T("Edge"), ABE_TOP);
     m_Default.BackColor = FixColor(RegGetDWORD(-abc.hKeyBar, _T("BackColor"), m_Default.BackColor));
-    m_Default.PanelColor = FixColor(RegGetDWORD(-abc.hKeyBar, _T("PanelColor"), m_Default.PanelColor));
+    m_Default.PanelBackColor = FixColor(RegGetDWORD(-abc.hKeyBar, _T("PanelBackColor"), m_Default.PanelBackColor));
+    m_Default.PanelBorderColor = FixColor(RegGetDWORD(-abc.hKeyBar, _T("PanelBorderColor"), m_Default.PanelBorderColor));
     m_Default.FontColor = FixColor(RegGetDWORD(-abc.hKeyBar, _T("FontColor"), m_Default.FontColor));
     m_Default.HighlightColor = FixColor(RegGetDWORD(-abc.hKeyBar, _T("HighlightColor"), m_Default.HighlightColor));
     RegGetString(-abc.hKeyBar, _T("FontFace"), m_Default.FontFace, ARRAYSIZE(m_Default.FontFace));
@@ -452,15 +453,15 @@ void RootWindow::OnDraw(const PAINTSTRUCT* pps) const
 #if 0
     HDC hDC = pps->hdc;
 
-    auto DCPenColor = MakeDCPenColor(hDC, RGB(100, 100, 100));
+    auto DCPenColor = MakeDCPenColor(hDC, m_Default.PanelBorderColor);
     auto DCBrushColor = MakeDCBrushColor(hDC, m_Default.PanelColor);
     auto hOldPen = MakeSelectObject(hDC, GetStockObject(DC_PEN));
     auto hOldBrush = MakeSelectObject(hDC, GetStockObject(DC_BRUSH));
 #else
     Gdiplus::Graphics g(pps->hdc);
-    Gdiplus::Pen pen(Gdiplus::Color(255, 100, 100, 100));
+    Gdiplus::Pen pen(Swap(m_Default.PanelBorderColor));
     pen.SetAlignment(Gdiplus::PenAlignmentCenter);
-    Gdiplus::SolidBrush brush(Swap(m_Default.PanelColor));
+    Gdiplus::SolidBrush brush(Swap(m_Default.PanelBackColor));
 #endif
 
     for (int i = 0; i < NUM_SECTIONS; ++i)
