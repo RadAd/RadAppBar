@@ -33,8 +33,8 @@ inline HDC WINAPI BeginPaintDB(_In_ HWND hWnd, _Out_ LPPAINTSTRUCTDB lpPaint)
 
 inline BOOL WINAPI EndPaintDB(_In_ HWND hWnd, _In_ CONST PAINTSTRUCTDB* lpPaint)
 {
-    BitBlt(lpPaint->hdcwnd, lpPaint->rcPaint.left, lpPaint->rcPaint.top, lpPaint->rcPaint.right - lpPaint->rcPaint.left, lpPaint->rcPaint.bottom - lpPaint->rcPaint.top, lpPaint->hdc, lpPaint->rcPaint.left, lpPaint->rcPaint.top, SRCCOPY);
-
+    BitBlt(lpPaint->hdcwnd, lpPaint->rcPaint.left, lpPaint->rcPaint.top, lpPaint->rcPaint.right - lpPaint->rcPaint.left, lpPaint->rcPaint.bottom - lpPaint->rcPaint.top,
+        lpPaint->hdc, lpPaint->rcPaint.left, lpPaint->rcPaint.top, SRCCOPY);
     SelectObject(lpPaint->hdc, lpPaint->hbmpold);
     DeleteObject(lpPaint->hbmp);
     DeleteDC(lpPaint->hdc);
@@ -68,11 +68,13 @@ protected:
         PAINTSTRUCT ps;
         BeginPaint(*this, &ps);
         OnDraw(&ps);
+        OnPostDraw(&ps);
         EndPaint(*this, &ps);
 #else
         PAINTSTRUCTDB ps;
         BeginPaintDB(*this, &ps);
         OnDraw(&ps);
+        OnPostDraw(&ps);
         EndPaintDB(*this, &ps);
 #endif
     }

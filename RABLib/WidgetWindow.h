@@ -16,6 +16,7 @@ protected:
     static void GetWndClass(WNDCLASS& wc);
     static void GetCreateWindow(CREATESTRUCT& cs);
     void HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT* pResult) override;
+    virtual void OnPostDraw(const PAINTSTRUCT* pps) const override;
 
 private:
     BOOL OnCreate(LPCREATESTRUCT lpCreateStruct, LRESULT* pResult);
@@ -36,4 +37,5 @@ protected:
 protected:
     UINT m_uEdge = 0; // ABE_TOP;
     const Resources* m_pResources = nullptr;
+    BOOL m_bHasAlpha = FALSE;;
 };

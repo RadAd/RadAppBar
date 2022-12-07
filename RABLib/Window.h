@@ -80,6 +80,7 @@ protected:
     virtual ~Window() = default;
     virtual void HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT* pResult);
     virtual void OnDraw(const PAINTSTRUCT* pps) const { }
+    virtual void OnPostDraw(const PAINTSTRUCT* pps) const { }
 
 private:
     void OnPaint();
