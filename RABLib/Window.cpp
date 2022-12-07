@@ -95,6 +95,7 @@ void Window::OnPaint()
     PAINTSTRUCT ps;
     BeginPaint(m_hWnd, &ps);
     OnDraw(&ps);
+    OnPostDraw(&ps);
     EndPaint(m_hWnd, &ps);
 }
 
@@ -104,4 +105,5 @@ void Window::OnPrintClient(const HDC hdc)
     ps.hdc = hdc;
     GetClientRect(m_hWnd, &ps.rcPaint);
     OnDraw(&ps);
+    OnPostDraw(&ps);
 }

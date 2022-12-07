@@ -76,6 +76,12 @@ void WidgetWindow::HandleMessage(const UINT uMsg, const WPARAM wParam, const LPA
     }
 }
 
+void WidgetWindow::OnPostDraw(const PAINTSTRUCT* pps) const
+{
+    if (!m_bHasAlpha)
+        PixelBlt(pps->hdc, pps->rcPaint.left, pps->rcPaint.top, pps->rcPaint.right - pps->rcPaint.left, pps->rcPaint.bottom - pps->rcPaint.top, ARGB(255, 0, 0, 0), SRCPAINT);
+}
+
 SIZE WidgetWindow::GetSize() const
 {
     RECT rc;
